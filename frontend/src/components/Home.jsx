@@ -1,45 +1,44 @@
 import React, { useState } from "react";
 import { FaFileWord } from "react-icons/fa6";
 import axios from "axios";
+import { BACKEND_URL } from "../../utility"; // ✅ Adjusted path
+
 function Home() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [convert, setConvert] = useState("");
   const [downloadError, setDownloadError] = useState("");
 
   const handleFileChange = (e) => {
-    // console.log(e.target.files[0]);
     setSelectedFile(e.target.files[0]);
   };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!selectedFile) {
       setConvert("Please select a file");
       return;
     }
+
     const formData = new FormData();
     formData.append("file", selectedFile);
+
     try {
       const response = await axios.post(
-        "http://localhost:3000/convertFile",
+        `${BACKEND_URL}/convertFile`, // ✅ Updated to use backend URL
         formData,
         {
           responseType: "blob",
         }
       );
-      console.log(response.data);
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      console.log(url);
       const link = document.createElement("a");
-      console.log(link);
       link.href = url;
-      console.log(link);
       link.setAttribute(
         "download",
         selectedFile.name.replace(/\.[^/.]+$/, "") + ".pdf"
       );
-      console.log(link);
       document.body.appendChild(link);
-      console.log(link);
       link.click();
       link.parentNode.removeChild(link);
       setSelectedFile(null);
@@ -47,13 +46,14 @@ function Home() {
       setConvert("File Converted Successfully");
     } catch (error) {
       console.log(error);
-      if (error.response && error.response.status == 400) {
-        setDownloadError("Error occurred: ", error.response.data.message);
+      if (error.response && error.response.status === 400) {
+        setDownloadError("Error occurred: " + error.response.data.message);
       } else {
         setConvert("");
       }
     }
   };
+
   return (
     <>
       <div className="max-w-screen-2xl mx-auto container px-6 py-3 md:px-40">
